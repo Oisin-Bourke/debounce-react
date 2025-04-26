@@ -1,35 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useRef } from "react"
+import "./App.css"
 
-function App() {
-  const [count, setCount] = useState(0)
+type CallbackFunction = (...args: any[]) => void
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+const debounce = (callback: CallbackFunction, delay: number) => {
+	let timeoutId: number | undefined
+
+	const debouncedFunction = (...args: any[]) => {
+		// Clear the previous timeout if it exists
+		if (timeoutId !== undefined) {
+			clearTimeout(timeoutId)
+		}
+
+		// Set a new timeout to call the function after the delay
+		timeoutId = setTimeout(() => {
+			callback(...args)
+		}, delay)
+	}
+
+	return debouncedFunction
+}
+
+const App = () => {
+	const [value, setValue] = useState("")
+	const [finalValue, setFinalValue] = useState("")
+
+	const debouncedSetFinalValue = useRef(debounce(setFinalValue, 2000)).current
+
+	const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const value = event.target.value
+		setValue(value)
+		debouncedSetFinalValue(value)
+	}
+
+	const handleClearClick = () => {
+		setValue("")
+		setFinalValue("")
+	}
+
+	return (
+		<div className='flexColumn'>
+			<label htmlFor='value'>Type something</label>
+			<input
+				id='value'
+				type='text'
+				value={value}
+				onChange={handleInputChange}
+			/>
+			<label htmlFor='debounced'>Debounced value</label>
+			<input id='debounced' type='text' value={finalValue} readOnly />
+			<button onClick={handleClearClick}>Clear</button>
+		</div>
+	)
 }
 
 export default App
